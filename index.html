@@ -1,0 +1,896 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>勞務報酬單</title>
+  <style>
+    :root {
+      --paper: #fbfaf7;
+      --ink: #1f2a2e;
+      --muted: #637176;
+      --line: #cfd7d8;
+      --field: #ffffff;
+      --accent: #126e73;
+      --accent-soft: #e1f0ee;
+      --warning: #8c5a00;
+      --warning-bg: #fff4d8;
+      --shadow: 0 18px 45px rgba(25, 43, 45, 0.12);
+      font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, #edf4f3 0, #f8f6f0 42%, #f6f2ea 100%);
+      min-height: 100vh;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 28px auto 56px;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .toolbar h1 {
+      margin: 0;
+      font-size: clamp(1.65rem, 3vw, 2.35rem);
+      letter-spacing: 0;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    button {
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #fff;
+      min-height: 42px;
+      padding: 0 15px;
+      border-radius: 8px;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #fff;
+      color: var(--accent);
+    }
+
+    .sheet {
+      background: var(--paper);
+      border: 1px solid #d7dcda;
+      box-shadow: var(--shadow);
+      padding: clamp(18px, 3vw, 32px);
+    }
+
+    .topline {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: end;
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 16px;
+      margin-bottom: 18px;
+    }
+
+    .company-line {
+      display: grid;
+      grid-template-columns: minmax(180px, 480px);
+      align-items: center;
+      gap: 8px;
+    }
+
+    .company-line input {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .doc-title {
+      margin: 8px 0 0;
+      font-size: 1.8rem;
+      font-weight: 800;
+    }
+
+    .date-line {
+      display: grid;
+      gap: 6px;
+      min-width: 230px;
+    }
+
+    section {
+      border: 1px solid var(--line);
+      margin-top: 14px;
+      background: rgba(255, 255, 255, 0.48);
+    }
+
+    section > h2 {
+      margin: 0;
+      padding: 10px 12px;
+      font-size: 1rem;
+      background: #e8edeb;
+      border-bottom: 1px solid var(--line);
+      letter-spacing: 0;
+    }
+
+    .section-body {
+      padding: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+      align-items: start;
+    }
+
+    .span-2 { grid-column: span 2; }
+    .span-3 { grid-column: span 3; }
+    .span-4 { grid-column: span 4; }
+    .span-5 { grid-column: span 5; }
+    .span-6 { grid-column: span 6; }
+    .span-7 { grid-column: span 7; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+
+    label,
+    .field-label {
+      display: grid;
+      gap: 6px;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid #bfc9ca;
+      border-radius: 6px;
+      background: var(--field);
+      color: var(--ink);
+      min-height: 40px;
+      padding: 8px 10px;
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 84px;
+      resize: vertical;
+    }
+
+    .choice-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .choice {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 40px;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      cursor: pointer;
+    }
+
+    .choice input {
+      width: 17px;
+      height: 17px;
+      min-height: 0;
+      accent-color: var(--accent);
+    }
+
+    .address-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1.2fr 1fr 0.7fr 1.2fr 0.7fr 0.7fr 0.7fr 0.7fr 0.7fr 0.7fr;
+      gap: 8px;
+    }
+
+    .amount-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+      gap: 16px;
+    }
+
+    .calc-box {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .calc-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      padding: 10px 12px;
+      border-bottom: 1px solid #edf0ef;
+      align-items: center;
+    }
+
+    .calc-row:last-child {
+      border-bottom: 0;
+    }
+
+    .calc-row strong {
+      font-size: 1.08rem;
+      color: var(--accent);
+    }
+
+    .note {
+      margin: 10px 0 0;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: var(--warning-bg);
+      color: var(--warning);
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+
+    .receipt-line {
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 1.05rem;
+      line-height: 1.8;
+    }
+
+    .receipt-line .receipt-value {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .signature {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 12px;
+    }
+
+    .signature-box {
+      min-height: 72px;
+      border-bottom: 1px solid var(--ink);
+      display: flex;
+      align-items: flex-end;
+      padding: 0 0 10px;
+    }
+
+    .summary {
+      margin-top: 14px;
+      border: 1px solid var(--accent);
+      background: var(--accent-soft);
+      border-radius: 8px;
+      padding: 12px;
+      line-height: 1.7;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 980px) {
+      .topline,
+      .amount-panel,
+      .signature,
+      .signature {
+        grid-template-columns: 1fr;
+      }
+
+      .span-2,
+      .span-3,
+      .span-4,
+      .span-5,
+      .span-6,
+      .span-7,
+      .span-8 {
+        grid-column: span 12;
+      }
+
+      .address-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      main {
+        width: min(100% - 20px, 1180px);
+        margin-top: 14px;
+      }
+
+      .toolbar {
+        display: grid;
+      }
+
+      .actions {
+        justify-content: stretch;
+      }
+
+      .actions button {
+        flex: 1 1 120px;
+      }
+
+      .company-line,
+      .address-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .sheet {
+        padding: 14px;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      main {
+        width: 100%;
+        margin: 0;
+      }
+
+      .toolbar,
+      .no-print {
+        display: none !important;
+      }
+
+      .sheet {
+        box-shadow: none;
+        border: 0;
+        padding: 0;
+      }
+
+      input,
+      select,
+      textarea {
+        border-color: #777;
+        background: #fff;
+      }
+
+      section {
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="toolbar">
+      <h1>勞務報酬單</h1>
+      <div class="actions">
+        <button type="button" id="printBtn">列印</button>
+        <button type="button" id="pdfBtn">輸出 PDF</button>
+        <button type="button" class="secondary" id="copyBtn">複製摘要</button>
+        <button type="button" class="secondary" id="resetBtn">清空</button>
+      </div>
+    </div>
+
+    <form class="sheet" id="paymentForm">
+      <div class="topline">
+        <div>
+          <div class="company-line">
+            <label>
+              公司名稱
+              <input id="companyName" name="companyName" value="豫卓策略顧問有限公司" />
+            </label>
+          </div>
+          <div class="doc-title">勞務報酬單</div>
+        </div>
+        <label class="date-line">
+          填表日期
+          <input type="date" id="fillDate" name="fillDate" />
+        </label>
+      </div>
+
+      <section>
+        <h2>報酬類型</h2>
+        <div class="section-body grid">
+          <div class="span-5 field-label">
+            給付分類
+            <div class="choice-row" role="radiogroup" aria-label="給付分類">
+              <label class="choice"><input type="radio" name="payKind" value="薪資" checked />薪資</label>
+              <label class="choice"><input type="radio" name="payKind" value="其他" />其他</label>
+            </div>
+          </div>
+          <label class="span-7">
+            所得類別
+            <select id="incomeType" name="incomeType">
+              <option value="salary_fixed">固定薪資(50)：查表，起扣點 84,501</option>
+              <option value="salary_variable">非固定薪資(50)：5%，起扣點 84,501</option>
+              <option value="professional" selected>執行業務報酬(9A)：10%，起扣點 20,001</option>
+              <option value="rent">租賃所得(51)：10%，起扣點 20,001</option>
+              <option value="lottery">機會中獎獎金(91)：10%，起扣點 20,001</option>
+              <option value="custom">其他或自訂扣繳</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section>
+        <h2>領款人基本資料</h2>
+        <div class="section-body grid">
+          <div class="span-12 field-label">
+            國籍與居留狀態
+            <div class="choice-row" role="radiogroup" aria-label="國籍與居留狀態">
+              <label class="choice"><input type="radio" name="residentStatus" value="本國籍" checked />本國籍</label>
+              <label class="choice"><input type="radio" name="residentStatus" value="外國籍 在台滿183天" />外國籍 在台滿 183 天</label>
+              <label class="choice"><input type="radio" name="residentStatus" value="外國籍 在台未滿183天" />外國籍 在台未滿 183 天</label>
+            </div>
+          </div>
+          <label class="span-3">
+            姓名
+            <input id="payeeName" name="payeeName" autocomplete="name" />
+          </label>
+          <label class="span-3">
+            身分證字號
+            <input id="nationalId" name="nationalId" inputmode="text" />
+          </label>
+          <label class="span-3">
+            居留證/護照 No.
+            <input id="passportId" name="passportId" />
+          </label>
+          <label class="span-3">
+            聯絡電話
+            <input id="phone" name="phone" autocomplete="tel" inputmode="tel" />
+          </label>
+
+          <div class="span-12 field-label">
+            戶籍地址
+            <div class="address-grid" data-address="registered">
+              <select data-part="city" aria-label="戶籍縣市"></select>
+              <select data-part="district" aria-label="戶籍區鄉鎮"></select>
+              <input data-part="village" placeholder="里村" />
+              <input data-part="neighbor" placeholder="鄰" inputmode="numeric" />
+              <input data-part="road" placeholder="路街" />
+              <input data-part="section" placeholder="段" />
+              <input data-part="lane" placeholder="巷" />
+              <input data-part="alley" placeholder="弄" />
+              <input data-part="no" placeholder="號" />
+              <input data-part="floor" placeholder="樓" />
+              <input data-part="sub" placeholder="之" />
+            </div>
+          </div>
+
+          <div class="span-12 field-label">
+            通訊地址
+            <label class="choice no-print" style="width:max-content">
+              <input type="checkbox" id="sameAddress" />同戶籍地址
+            </label>
+            <div class="address-grid" data-address="mailing">
+              <select data-part="city" aria-label="通訊縣市"></select>
+              <select data-part="district" aria-label="通訊區鄉鎮"></select>
+              <input data-part="village" placeholder="里村" />
+              <input data-part="neighbor" placeholder="鄰" inputmode="numeric" />
+              <input data-part="road" placeholder="路街" />
+              <input data-part="section" placeholder="段" />
+              <input data-part="lane" placeholder="巷" />
+              <input data-part="alley" placeholder="弄" />
+              <input data-part="no" placeholder="號" />
+              <input data-part="floor" placeholder="樓" />
+              <input data-part="sub" placeholder="之" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>勞務內容</h2>
+        <div class="section-body grid">
+          <label class="span-4">
+            專案名稱
+            <input id="projectName" name="projectName" value="軟體銷售課程助教" />
+          </label>
+          <label class="span-4">
+            期間日期
+            <input type="date" id="startDate" name="startDate" />
+          </label>
+          <label class="span-4">
+            勞務項目
+            <select id="serviceItem" name="serviceItem">
+              <option value="顧問諮詢">顧問諮詢</option>
+              <option value="講座授課">講座授課</option>
+              <option value="內容撰寫">內容撰寫</option>
+              <option value="設計製作">設計製作</option>
+              <option value="活動協力">活動協力</option>
+              <option value="系統開發">系統開發</option>
+              <option value="其他勞務">其他勞務</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section>
+        <h2>領款金額</h2>
+        <div class="section-body amount-panel">
+          <div class="grid">
+            <label class="span-4">
+              支領金額
+              <input id="grossAmount" name="grossAmount" type="number" min="0" step="1" inputmode="numeric" placeholder="新台幣" />
+            </label>
+            <label class="span-4">
+              扣繳稅額模式
+              <select id="taxMode" name="taxMode">
+                <option value="auto" selected>自動依所得類別計算</option>
+                <option value="manual">手動輸入扣繳稅額</option>
+              </select>
+            </label>
+            <label class="span-4">
+              手動扣繳稅額
+              <input id="manualTax" name="manualTax" type="number" min="0" step="1" inputmode="numeric" disabled />
+            </label>
+
+            <label class="span-4">
+              補充保費模式
+              <select id="healthMode" name="healthMode">
+                <option value="auto" selected>自動判斷</option>
+                <option value="yes">需要扣繳 2.11%</option>
+                <option value="no">免扣補充保費</option>
+              </select>
+            </label>
+            <label class="span-4">
+              二代健保條件
+              <select id="healthRule" name="healthRule">
+                <option value="professional">執行業務單次給付達 20,000 元</option>
+                <option value="parttime">兼職所得超過 24,000 元</option>
+                <option value="none">不適用</option>
+              </select>
+            </label>
+            <label class="span-4">
+              付款方式
+              <select id="paymentMethod" name="paymentMethod">
+                <option value="現金">現金</option>
+                <option value="支票">支票</option>
+                <option value="匯款" selected>匯款</option>
+                <option value="LINE PAY/行動支付">LINE PAY/行動支付</option>
+                <option value="禮券">禮券</option>
+              </select>
+            </label>
+
+            <div class="span-12 grid" id="bankFields">
+              <label class="span-4">
+                銀行
+                <select id="bankName" name="bankName">
+                  <option value="">請選擇</option>
+                  <option>臺灣銀行</option>
+                  <option>土地銀行</option>
+                  <option>合作金庫銀行</option>
+                  <option>第一銀行</option>
+                  <option>華南銀行</option>
+                  <option>彰化銀行</option>
+                  <option>上海商業儲蓄銀行</option>
+                  <option>台北富邦銀行</option>
+                  <option>國泰世華銀行</option>
+                  <option>中國信託銀行</option>
+                  <option>玉山銀行</option>
+                  <option>台新銀行</option>
+                  <option>永豐銀行</option>
+                  <option>元大銀行</option>
+                  <option>兆豐銀行</option>
+                  <option>其他銀行</option>
+                </select>
+              </label>
+              <label class="span-3">
+                分行
+                <input id="branchName" name="branchName" list="branchOptions" />
+              </label>
+              <datalist id="branchOptions">
+                <option value="營業部"></option>
+                <option value="台北分行"></option>
+                <option value="板橋分行"></option>
+                <option value="桃園分行"></option>
+                <option value="台中分行"></option>
+                <option value="台南分行"></option>
+                <option value="高雄分行"></option>
+              </datalist>
+              <label class="span-3">
+                帳號
+                <input id="bankAccount" name="bankAccount" inputmode="numeric" />
+              </label>
+              <label class="span-2">
+                戶名
+                <input id="accountName" name="accountName" />
+              </label>
+            </div>
+
+            <p class="span-12 note" id="taxNote">
+              本頁依原始單據文字建立自動試算：本國籍應扣繳稅額小於或等於 2,000 元時，不預先扣繳。固定薪資若超過起扣點，請改用手動扣繳並依公司扣繳稅額表填入。
+            </p>
+          </div>
+
+          <div>
+            <div class="calc-box" aria-live="polite">
+              <div class="calc-row"><span>支領金額</span><strong id="grossDisplay">NT$0</strong></div>
+              <div class="calc-row"><span>代扣所得稅</span><strong id="taxDisplay">NT$0</strong></div>
+              <div class="calc-row"><span>二代健保 2.11%</span><strong id="healthDisplay">NT$0</strong></div>
+              <div class="calc-row"><span>支領淨額</span><strong id="netDisplay">NT$0</strong></div>
+            </div>
+            <div class="summary" id="summaryText">
+              請輸入支領金額，系統會自動試算扣繳與淨額。
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>收據與簽章</h2>
+        <div class="section-body">
+          <div class="receipt-line">
+            茲收到<span class="receipt-value" id="receiptCompany">豫卓策略顧問有限公司</span>支付本人之報酬，新台幣共計<span class="receipt-value" id="receiptChinese">零元</span>整。
+          </div>
+          <div class="signature">
+            <div>
+              <div class="signature-box">領款人：<span id="signatureName"></span>　（簽名及蓋章）</div>
+            </div>
+            <div>
+              <div class="signature-box">經辦人：＿＿＿＿＿</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </form>
+  </main>
+
+  <script>
+    const districts = {
+      "臺北市": ["中正區", "大同區", "中山區", "松山區", "大安區", "萬華區", "信義區", "士林區", "北投區", "內湖區", "南港區", "文山區"],
+      "新北市": ["板橋區", "三重區", "中和區", "永和區", "新莊區", "新店區", "土城區", "蘆洲區", "汐止區", "樹林區", "淡水區", "三峽區", "林口區", "五股區", "泰山區", "鶯歌區", "八里區", "瑞芳區", "深坑區", "三芝區", "萬里區", "金山區", "貢寮區", "石門區", "雙溪區", "石碇區", "坪林區", "烏來區", "平溪區"],
+      "桃園市": ["桃園區", "中壢區", "平鎮區", "八德區", "楊梅區", "蘆竹區", "大溪區", "龜山區", "龍潭區", "大園區", "觀音區", "新屋區", "復興區"],
+      "臺中市": ["中區", "東區", "南區", "西區", "北區", "北屯區", "西屯區", "南屯區", "太平區", "大里區", "霧峰區", "烏日區", "豐原區", "后里區", "石岡區", "東勢區", "和平區", "新社區", "潭子區", "大雅區", "神岡區", "大肚區", "沙鹿區", "龍井區", "梧棲區", "清水區", "大甲區", "外埔區", "大安區"],
+      "臺南市": ["中西區", "東區", "南區", "北區", "安平區", "安南區", "永康區", "歸仁區", "新化區", "左鎮區", "玉井區", "楠西區", "南化區", "仁德區", "關廟區", "龍崎區", "官田區", "麻豆區", "佳里區", "西港區", "七股區", "將軍區", "學甲區", "北門區", "新營區", "後壁區", "白河區", "東山區", "六甲區", "下營區", "柳營區", "鹽水區", "善化區", "大內區", "山上區", "新市區", "安定區"],
+      "高雄市": ["新興區", "前金區", "苓雅區", "鹽埕區", "鼓山區", "旗津區", "前鎮區", "三民區", "楠梓區", "小港區", "左營區", "仁武區", "大社區", "岡山區", "路竹區", "阿蓮區", "田寮區", "燕巢區", "橋頭區", "梓官區", "彌陀區", "永安區", "湖內區", "鳳山區", "大寮區", "林園區", "鳥松區", "大樹區", "旗山區", "美濃區", "六龜區", "內門區", "杉林區", "甲仙區", "桃源區", "那瑪夏區", "茂林區", "茄萣區"],
+      "基隆市": ["仁愛區", "信義區", "中正區", "中山區", "安樂區", "暖暖區", "七堵區"],
+      "新竹市": ["東區", "北區", "香山區"],
+      "嘉義市": ["東區", "西區"],
+      "新竹縣": ["竹北市", "竹東鎮", "新埔鎮", "關西鎮", "湖口鄉", "新豐鄉", "芎林鄉", "橫山鄉", "北埔鄉", "寶山鄉", "峨眉鄉", "尖石鄉", "五峰鄉"],
+      "苗栗縣": ["苗栗市", "苑裡鎮", "通霄鎮", "竹南鎮", "頭份市", "後龍鎮", "卓蘭鎮", "大湖鄉", "公館鄉", "銅鑼鄉", "南庄鄉", "頭屋鄉", "三義鄉", "西湖鄉", "造橋鄉", "三灣鄉", "獅潭鄉", "泰安鄉"],
+      "彰化縣": ["彰化市", "員林市", "和美鎮", "鹿港鎮", "溪湖鎮", "二林鎮", "田中鎮", "北斗鎮", "花壇鄉", "芬園鄉", "大村鄉", "永靖鄉", "伸港鄉", "線西鄉", "福興鄉", "秀水鄉", "埔心鄉", "埔鹽鄉", "大城鄉", "芳苑鄉", "竹塘鄉", "社頭鄉", "二水鄉", "田尾鄉", "埤頭鄉"],
+      "南投縣": ["南投市", "埔里鎮", "草屯鎮", "竹山鎮", "集集鎮", "名間鄉", "鹿谷鄉", "中寮鄉", "魚池鄉", "國姓鄉", "水里鄉", "信義鄉", "仁愛鄉"],
+      "雲林縣": ["斗六市", "斗南鎮", "虎尾鎮", "西螺鎮", "土庫鎮", "北港鎮", "古坑鄉", "大埤鄉", "莿桐鄉", "林內鄉", "二崙鄉", "崙背鄉", "麥寮鄉", "東勢鄉", "褒忠鄉", "臺西鄉", "元長鄉", "四湖鄉", "口湖鄉", "水林鄉"],
+      "嘉義縣": ["太保市", "朴子市", "布袋鎮", "大林鎮", "民雄鄉", "溪口鄉", "新港鄉", "六腳鄉", "東石鄉", "義竹鄉", "鹿草鄉", "水上鄉", "中埔鄉", "竹崎鄉", "梅山鄉", "番路鄉", "大埔鄉", "阿里山鄉"],
+      "屏東縣": ["屏東市", "潮州鎮", "東港鎮", "恆春鎮", "萬丹鄉", "長治鄉", "麟洛鄉", "九如鄉", "里港鄉", "鹽埔鄉", "高樹鄉", "萬巒鄉", "內埔鄉", "竹田鄉", "新埤鄉", "枋寮鄉", "新園鄉", "崁頂鄉", "林邊鄉", "南州鄉", "佳冬鄉", "琉球鄉", "車城鄉", "滿州鄉", "枋山鄉", "三地門鄉", "霧臺鄉", "瑪家鄉", "泰武鄉", "來義鄉", "春日鄉", "獅子鄉", "牡丹鄉"],
+      "宜蘭縣": ["宜蘭市", "羅東鎮", "蘇澳鎮", "頭城鎮", "礁溪鄉", "壯圍鄉", "員山鄉", "冬山鄉", "五結鄉", "三星鄉", "大同鄉", "南澳鄉"],
+      "花蓮縣": ["花蓮市", "鳳林鎮", "玉里鎮", "新城鄉", "吉安鄉", "壽豐鄉", "光復鄉", "豐濱鄉", "瑞穗鄉", "富里鄉", "秀林鄉", "萬榮鄉", "卓溪鄉"],
+      "臺東縣": ["臺東市", "成功鎮", "關山鎮", "卑南鄉", "鹿野鄉", "池上鄉", "東河鄉", "長濱鄉", "太麻里鄉", "大武鄉", "綠島鄉", "海端鄉", "延平鄉", "金峰鄉", "達仁鄉", "蘭嶼鄉"],
+      "澎湖縣": ["馬公市", "湖西鄉", "白沙鄉", "西嶼鄉", "望安鄉", "七美鄉"],
+      "金門縣": ["金城鎮", "金湖鎮", "金沙鎮", "金寧鄉", "烈嶼鄉", "烏坵鄉"],
+      "連江縣": ["南竿鄉", "北竿鄉", "莒光鄉", "東引鄉"]
+    };
+
+    const taxRules = {
+      salary_fixed: { label: "固定薪資(50)", rate: 0, threshold: 84501, table: true },
+      salary_variable: { label: "非固定薪資(50)", rate: 0.05, threshold: 84501 },
+      professional: { label: "執行業務報酬(9A)", rate: 0.10, threshold: 20001 },
+      rent: { label: "租賃所得(51)", rate: 0.10, threshold: 20001 },
+      lottery: { label: "機會中獎獎金(91)", rate: 0.10, threshold: 20001 },
+      custom: { label: "其他或自訂", rate: 0, threshold: Infinity, custom: true }
+    };
+
+    const form = document.getElementById("paymentForm");
+    const money = new Intl.NumberFormat("zh-TW", { style: "currency", currency: "TWD", maximumFractionDigits: 0 });
+
+    function todayValue() {
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      return now.toISOString().slice(0, 10);
+    }
+
+    function option(value, text = value) {
+      const item = document.createElement("option");
+      item.value = value;
+      item.textContent = text;
+      return item;
+    }
+
+    function fillDistrictOptions(citySelect, districtSelect, cityValue, districtValue = "") {
+      citySelect.value = cityValue || "";
+      districtSelect.replaceChildren(option("", "區鄉鎮"));
+      (districts[citySelect.value] || []).forEach(name => districtSelect.append(option(name)));
+      districtSelect.value = districtValue || "";
+    }
+
+    function setupAddress(addressEl) {
+      const city = addressEl.querySelector('[data-part="city"]');
+      const district = addressEl.querySelector('[data-part="district"]');
+      city.append(option("", "縣市"));
+      Object.keys(districts).forEach(name => city.append(option(name)));
+      district.append(option("", "區鄉鎮"));
+
+      city.addEventListener("change", () => {
+        fillDistrictOptions(city, district, city.value);
+        updateAll();
+      });
+      addressEl.querySelectorAll("input, select").forEach(input => input.addEventListener("input", updateAll));
+    }
+
+    function getAddress(kind) {
+      const el = document.querySelector(`[data-address="${kind}"]`);
+      return Array.from(el.querySelectorAll("input, select"))
+        .map(input => input.value.trim())
+        .filter(Boolean)
+        .join("");
+    }
+
+    function copyRegisteredAddress() {
+      const source = document.querySelector('[data-address="registered"]');
+      const target = document.querySelector('[data-address="mailing"]');
+      const sourceCity = source.querySelector('[data-part="city"]');
+      const sourceDistrict = source.querySelector('[data-part="district"]');
+      const targetCity = target.querySelector('[data-part="city"]');
+      const targetDistrict = target.querySelector('[data-part="district"]');
+      fillDistrictOptions(targetCity, targetDistrict, sourceCity.value, sourceDistrict.value);
+      source.querySelectorAll("input").forEach(input => {
+        target.querySelector(`[data-part="${input.dataset.part}"]`).value = input.value;
+      });
+    }
+
+    function toNumber(id) {
+      return Math.max(0, Number(document.getElementById(id).value || 0));
+    }
+
+    function roundCurrency(value) {
+      return Math.round(value);
+    }
+
+    function calcTax(gross) {
+      const taxMode = document.getElementById("taxMode").value;
+      if (taxMode === "manual") return toNumber("manualTax");
+
+      const rule = taxRules[document.getElementById("incomeType").value];
+      if (rule.table || rule.custom || gross < rule.threshold) return 0;
+
+      let tax = roundCurrency(gross * rule.rate);
+      const resident = document.querySelector('[name="residentStatus"]:checked').value;
+      if (resident === "本國籍" && tax <= 2000) tax = 0;
+      return tax;
+    }
+
+    function calcHealth(gross) {
+      const mode = document.getElementById("healthMode").value;
+      if (mode === "no") return 0;
+      if (mode === "yes") return roundCurrency(gross * 0.0211);
+
+      const healthRule = document.getElementById("healthRule").value;
+      if (healthRule === "professional" && gross >= 20000) return roundCurrency(gross * 0.0211);
+      if (healthRule === "parttime" && gross > 24000) return roundCurrency(gross * 0.0211);
+      return 0;
+    }
+
+    function toChineseMoney(num) {
+      num = Math.round(Number(num || 0));
+      if (num <= 0) return "零元";
+      const digits = "零壹貳參肆伍陸柒捌玖";
+      const units = ["", "拾", "佰", "仟"];
+      const bigUnits = ["", "萬", "億"];
+      const chunks = [];
+      let value = num;
+      while (value > 0) {
+        chunks.push(value % 10000);
+        value = Math.floor(value / 10000);
+      }
+      const chunkToText = chunk => {
+        let out = "";
+        let zero = false;
+        for (let i = 3; i >= 0; i--) {
+          const unit = Math.pow(10, i);
+          const digit = Math.floor(chunk / unit) % 10;
+          if (digit === 0) {
+            zero = out.length > 0;
+          } else {
+            if (zero) out += digits[0];
+            out += digits[digit] + units[i];
+            zero = false;
+          }
+        }
+        return out;
+      };
+      let text = "";
+      let needZero = false;
+      for (let i = chunks.length - 1; i >= 0; i--) {
+        const chunk = chunks[i];
+        if (chunk === 0) {
+          needZero = text.length > 0;
+          continue;
+        }
+        if (needZero || (chunk < 1000 && text.length > 0)) text += digits[0];
+        text += chunkToText(chunk) + bigUnits[i];
+        needZero = false;
+      }
+      return text + "元";
+    }
+
+    function updateBankVisibility() {
+      const isTransfer = document.getElementById("paymentMethod").value === "匯款";
+      document.getElementById("bankFields").classList.toggle("hidden", !isTransfer);
+    }
+
+    function updateManualTaxState() {
+      const manual = document.getElementById("taxMode").value === "manual";
+      document.getElementById("manualTax").disabled = !manual;
+    }
+
+    function updateHealthRule() {
+      const incomeType = document.getElementById("incomeType").value;
+      const healthRule = document.getElementById("healthRule");
+      if (incomeType === "professional" && healthRule.value === "none") {
+        healthRule.value = "professional";
+      }
+    }
+
+    function updateAll() {
+      if (document.getElementById("sameAddress").checked) copyRegisteredAddress();
+      updateManualTaxState();
+      updateBankVisibility();
+      updateHealthRule();
+
+      const gross = toNumber("grossAmount");
+      const tax = calcTax(gross);
+      const health = calcHealth(gross);
+      const net = Math.max(0, gross - tax - health);
+      const incomeRule = taxRules[document.getElementById("incomeType").value];
+      const payee = document.getElementById("payeeName").value.trim();
+      const company = document.getElementById("companyName").value.trim();
+      const payment = document.getElementById("paymentMethod").value;
+
+      document.getElementById("grossDisplay").textContent = money.format(gross);
+      document.getElementById("taxDisplay").textContent = money.format(tax);
+      document.getElementById("healthDisplay").textContent = money.format(health);
+      document.getElementById("netDisplay").textContent = money.format(net);
+      document.getElementById("receiptCompany").textContent = company || "豫卓策略顧問有限公司";
+      document.getElementById("receiptChinese").textContent = toChineseMoney(net);
+      document.getElementById("signatureName").textContent = payee || "";
+
+      const taxDescription = incomeRule.table && gross >= incomeRule.threshold
+        ? "固定薪資已達起扣點，請依扣繳稅額表改用手動扣繳。"
+        : `${incomeRule.label}，目前扣繳 ${money.format(tax)}。`;
+      const address = getAddress("mailing") || getAddress("registered") || "尚未填寫地址";
+      document.getElementById("summaryText").textContent =
+        `${payee || "領款人"}｜${taxDescription}｜二代健保 ${money.format(health)}｜淨額 ${money.format(net)}｜付款方式：${payment}｜通訊地址：${address}`;
+    }
+
+    document.querySelectorAll("[data-address]").forEach(setupAddress);
+    document.getElementById("fillDate").value = todayValue();
+    document.getElementById("sameAddress").addEventListener("change", updateAll);
+    document.getElementById("printBtn").addEventListener("click", () => window.print());
+    document.getElementById("pdfBtn").addEventListener("click", () => window.print());
+    document.getElementById("copyBtn").addEventListener("click", async () => {
+      const text = document.getElementById("summaryText").textContent;
+      await navigator.clipboard.writeText(text);
+      document.getElementById("copyBtn").textContent = "已複製";
+      setTimeout(() => document.getElementById("copyBtn").textContent = "複製摘要", 1200);
+    });
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      form.reset();
+      document.getElementById("fillDate").value = todayValue();
+      document.querySelectorAll('[data-part="district"]').forEach(select => select.replaceChildren(option("", "區鄉鎮")));
+      updateAll();
+    });
+    form.addEventListener("input", updateAll);
+    form.addEventListener("change", updateAll);
+    updateAll();
+  </script>
+</body>
+</html>
